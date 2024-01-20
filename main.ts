@@ -1,134 +1,203 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { Plugin } from "obsidian";
+import { RevealMethodSettingsTab } from "settings/reveal-method";
+import { marked } from "marked";
 
-// Remember to rename these classes and interfaces!
-
-interface MyPluginSettings {
-	mySetting: string;
+interface SimpleFlashcardsPluginSettings {
+	toggleRevealMethod: "hover" | "button-click" | "surface-click";
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
+const DEFAULT_SETTINGS: SimpleFlashcardsPluginSettings = {
+	toggleRevealMethod: "hover",
+};
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class SimpleFlashcardsPlugin extends Plugin {
+	settings: SimpleFlashcardsPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
+		this.addSettingTab(new RevealMethodSettingsTab(this.app, this));
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		this.registerMarkdownCodeBlockProcessor(
+			"flashcard",
+			async (source, el, ctx) => {
+				const lines = source
+					.split("\n")
+					.filter((line) => line.length > 0);
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
+				const flashcardContainer = el.createEl("div", {
+					cls: "flashcard-container",
+				});
 
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
+				const flashcardEl = flashcardContainer.createEl("div", {
+					cls: "flashcard",
+				});
+				const frontFace = flashcardEl.createEl("div", {
+					cls: "flashcard-face flashcard-face--front",
+				});
+				const backFace = flashcardEl.createEl("div", {
+					cls: "flashcard-face flashcard-face--back",
+				});
+
+				if (lines[0].startsWith("Q:")) {
+					const questionParts = [] as string[];
+					const answerParts = [] as string[];
+					let isAnswer = false;
+
+					lines.forEach((line) => {
+						if (line.startsWith("Q:")) {
+							questionParts.push(line.substring(2).trim());
+							isAnswer = false;
+						} else if (line.startsWith("A:")) {
+							if (answerParts.length > 0) {
+								answerParts[answerParts.length - 1] += "  ";
+							}
+							answerParts.push(line.substring(2).trim());
+							isAnswer = true;
+						} else if (isAnswer) {
+							answerParts.push(line.trim());
+						}
+					});
+
+					const question = questionParts.join(" ");
+					const answer = answerParts.join("  \n");
+
+					frontFace.innerHTML = await marked(question, {
+						async: true,
+					});
+					backFace.innerHTML = await marked(answer, { async: true });
+				} else {
+					let frontContent = lines.join(" ");
+					let backContent = lines.join(" ");
+
+					frontContent = this.getClozeFront(frontContent);
+					backContent = this.getClozeBack(backContent);
+
+					frontFace.innerHTML = await marked(frontContent, {
+						async: true,
+					});
+					const answerContainer = backFace.createEl("div", {
+						cls: "answer-container",
+					});
+					answerContainer.innerHTML = await marked(backContent, {
+						async: true,
+						gfm: true,
+						breaks: true,
+					});
+				}
+
+				switch (this.settings.toggleRevealMethod) {
+					case "hover":
+						flashcardContainer.addEventListener(
+							"mouseenter",
+							() => {
+								flashcardEl.classList.add("is-flipped");
+							}
+						);
+						flashcardContainer.addEventListener(
+							"mouseleave",
+							() => {
+								flashcardEl.classList.remove("is-flipped");
+							}
+						);
+						break;
+
+					case "surface-click":
+						flashcardEl.classList.add("clickable");
+						flashcardContainer.addEventListener(
+							"click",
+							(event) => {
+								//@ts-ignore
+								if (event.target.closest("img")) {
+									event.stopPropagation();
+								} else {
+									flashcardEl.classList.toggle("is-flipped");
+								}
+							}
+						);
+						break;
+
+					case "button-click":
+					default: {
+						const revealButton = frontFace.createEl("button", {
+							cls: "flashcard-button",
+							text: "Reveal",
+						});
+						revealButton.addEventListener("click", () => {
+							flashcardEl.classList.add("is-flipped");
+						});
+
+						const hideButton = backFace.createEl("button", {
+							cls: "flashcard-button",
+							text: "Hide",
+						});
+						hideButton.addEventListener("click", () => {
+							flashcardEl.classList.remove("is-flipped");
+						});
+						break;
 					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
 				}
 			}
+		);
+
+		const observer = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				if (
+					mutation.type === "childList" &&
+					mutation.addedNodes.length > 0
+				) {
+					this.adjustFlashcardHeight();
+				}
+			});
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		const config = { childList: true, subtree: true };
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		const targetNode = this.app.workspace.containerEl;
+		observer.observe(targetNode, config);
 	}
 
 	onunload() {
-
+		console.log("unloading plugin");
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.settings = Object.assign(
+			{},
+			DEFAULT_SETTINGS,
+			await this.loadData()
+		);
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
-}
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
+	getClozeFront(content: string): string {
+		const clozeRegex = /{{(.*?)}}/g;
+		return content.replace(clozeRegex, (_, word) => {
+			const underscoreText = "_".repeat(word.length);
+			return underscoreText;
+		});
 	}
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
+	getClozeBack(content: string): string {
+		const clozeRegex = /{{(.*?)}}/g;
+		return content.replace(clozeRegex, (_, hiddenText, __) => {
+			return `<span class='cloze-reveal'>${hiddenText}</span>`;
+		});
 	}
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
+	adjustFlashcardHeight() {
+		document.querySelectorAll(".flashcard").forEach((flashcard) => {
+			const frontFace = flashcard.querySelector(".flashcard-face--front");
+			const backFace = flashcard.querySelector(".flashcard-face--back");
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+			const frontHeight = frontFace ? frontFace.scrollHeight : 0;
+			const backHeight = backFace ? backFace.scrollHeight : 0;
 
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const {containerEl} = this;
-
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
+			const maxHeight = Math.max(frontHeight, backHeight);
+			//@ts-ignore
+			flashcard.style.height = maxHeight + "px";
+		});
 	}
 }

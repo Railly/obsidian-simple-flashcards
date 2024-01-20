@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.0",
+	"id": "simple-flashcards",
+	"name": "Simple Flashcards",
+	"version": "0.1.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "A plugin to create and manage interactive flashcards in Obsidian, supporting standard Q&A and cloze deletion formats.",
+	"author": "Railly Hugo",
+	"authorUrl": "https://github.com/Railly",
+	"fundingUrl": "https://www.paypal.com/donate/?hosted_button_id=J3PJ5N6LVZCPY",
 	"isDesktopOnly": false
 }
