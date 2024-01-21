@@ -19,13 +19,13 @@ export class RevealMethodSettingsTab extends PluginSettingTab {
 			.setDesc("Choose how the flashcard reveals the answer.")
 			.addDropdown((dropdown) =>
 				dropdown
-					.addOption("button-click", "Button Click")
 					.addOption("surface-click", "Surface Click")
+					.addOption("button-click", "Button Click")
 					.addOption("hover", "On Hover")
 					.setValue(this.plugin.settings.toggleRevealMethod)
 					.onChange(
 						async (
-							value: "hover" | "button-click" | "surface-click"
+							value: "surface-click" | "button-click" | "hover"
 						) => {
 							this.plugin.settings.toggleRevealMethod = value;
 							await this.plugin.saveSettings();

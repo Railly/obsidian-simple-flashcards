@@ -3,11 +3,11 @@ import { RevealMethodSettingsTab } from "settings/reveal-method";
 import { marked } from "marked";
 
 interface SimpleFlashcardsPluginSettings {
-	toggleRevealMethod: "hover" | "button-click" | "surface-click";
+	toggleRevealMethod: "surface-click" | "button-click" | "hover";
 }
 
 const DEFAULT_SETTINGS: SimpleFlashcardsPluginSettings = {
-	toggleRevealMethod: "hover",
+	toggleRevealMethod: "surface-click",
 };
 
 export default class SimpleFlashcardsPlugin extends Plugin {

@@ -3,9 +3,13 @@
 	"name": "Simple Flashcards",
 	"version": "0.1.0",
 	"minAppVersion": "0.15.0",
-	"description": "A plugin to create and manage interactive flashcards in Obsidian, supporting standard Q&A and cloze deletion formats.",
+	"description": "Display interactive flashcards to formulate knowledge",
 	"author": "Railly Hugo",
 	"authorUrl": "https://github.com/Railly",
-	"fundingUrl": "https://www.paypal.com/donate/?hosted_button_id=J3PJ5N6LVZCPY",
+	"fundingUrl": {
+		"PayPal": "https://www.paypal.com/donate/?hosted_button_id=J3PJ5N6LVZCPY",
+		"Buy Me a Coffee": "https://www.buymeacoffee.com/raillyhugo",
+		"GitHub Sponsor": "https://github.com/sponsors/Railly"
+	},
 	"isDesktopOnly": false
 }
