@@ -9,11 +9,6 @@ Display interactive flashcards to formulate knowledge 🧠
   <br>
 </p>
 
-<p align="center">
-    <a href="https://github.com/Railly/one-hunter-vscode/stargazers"><img src="https://img.shields.io/github/v/release/Railly/obsidian-simple-flashcards?style=for-the-badge&sort=semver&colorA=363a4f&colorB=5BDfff"></a>
-    <a href="https://marketplace.visualstudio.com/items?itemName=RaillyHugo.one-hunter"><img src="https://img.shields.io/github/downloads/Railly/obsidian-simple-flashcards/total?style=for-the-badge&colorA=363a4f&colorB=5BDfff"></a>
-</p>
-
 ## Features
 
 🗃️ Standard Q&A flashcards  
