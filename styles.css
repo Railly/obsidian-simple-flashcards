@@ -1,6 +1,6 @@
 .flashcard-container {
 	perspective: 1000px;
-	margin-bottom: 20px;
+	padding: 16px;
 }
 
 .flashcard {
