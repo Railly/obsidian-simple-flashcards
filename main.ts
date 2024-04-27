@@ -24,17 +24,17 @@ export default class SimpleFlashcardsPlugin extends Plugin {
 					.split("\n")
 					.filter((line) => line.length > 0);
 
-				const flashcardContainer = el.createEl("div", {
+				const flashcardContainer = el.createDiv({
 					cls: "flashcard-container",
 				});
 
-				const flashcardEl = flashcardContainer.createEl("div", {
+				const flashcardEl = flashcardContainer.createDiv({
 					cls: "flashcard",
 				});
-				const frontFace = flashcardEl.createEl("div", {
+				const frontFace = flashcardEl.createDiv({
 					cls: "flashcard-face flashcard-face--front",
 				});
-				const backFace = flashcardEl.createEl("div", {
+				const backFace = flashcardEl.createDiv({
 					cls: "flashcard-face flashcard-face--back",
 				});
 
@@ -61,10 +61,14 @@ export default class SimpleFlashcardsPlugin extends Plugin {
 					const question = questionParts.join(" ");
 					const answer = answerParts.join("  \n");
 
-					frontFace.innerHTML = await marked(question, {
-						async: true,
-					});
-					backFace.innerHTML = await marked(answer, { async: true });
+					frontFace.insertAdjacentHTML(
+						"afterbegin",
+						await marked(question, { async: true })
+					);
+					backFace.insertAdjacentHTML(
+						"afterbegin",
+						await marked(answer, { async: true })
+					);
 				} else {
 					let frontContent = lines.join(" ");
 					let backContent = lines.join(" ");
@@ -72,17 +76,21 @@ export default class SimpleFlashcardsPlugin extends Plugin {
 					frontContent = this.getClozeFront(frontContent);
 					backContent = this.getClozeBack(backContent);
 
-					frontFace.innerHTML = await marked(frontContent, {
-						async: true,
-					});
-					const answerContainer = backFace.createEl("div", {
+					frontFace.insertAdjacentHTML(
+						"afterbegin",
+						await marked(frontContent, { async: true })
+					);
+					const answerContainer = backFace.createDiv({
 						cls: "answer-container",
 					});
-					answerContainer.innerHTML = await marked(backContent, {
-						async: true,
-						gfm: true,
-						breaks: true,
-					});
+					answerContainer.insertAdjacentHTML(
+						"afterbegin",
+						await marked(backContent, {
+							async: true,
+							gfm: true,
+							breaks: true,
+						})
+					);
 				}
 
 				switch (this.settings.toggleRevealMethod) {
@@ -90,19 +98,19 @@ export default class SimpleFlashcardsPlugin extends Plugin {
 						flashcardContainer.addEventListener(
 							"mouseenter",
 							() => {
-								flashcardEl.classList.add("is-flipped");
+								flashcardEl.addClass("is-flipped");
 							}
 						);
 						flashcardContainer.addEventListener(
 							"mouseleave",
 							() => {
-								flashcardEl.classList.remove("is-flipped");
+								flashcardEl.removeClass("is-flipped");
 							}
 						);
 						break;
 
 					case "surface-click":
-						flashcardEl.classList.add("clickable");
+						flashcardEl.addClass("clickable");
 						flashcardContainer.addEventListener(
 							"click",
 							(event) => {
@@ -110,7 +118,10 @@ export default class SimpleFlashcardsPlugin extends Plugin {
 								if (event.target.closest("img")) {
 									event.stopPropagation();
 								} else {
-									flashcardEl.classList.toggle("is-flipped");
+									flashcardEl.toggleClass(
+										"is-flipped",
+										!flashcardEl.hasClass("is-flipped")
+									);
 								}
 							}
 						);
@@ -123,7 +134,7 @@ export default class SimpleFlashcardsPlugin extends Plugin {
 							text: "Reveal",
 						});
 						revealButton.addEventListener("click", () => {
-							flashcardEl.classList.add("is-flipped");
+							flashcardEl.addClass("is-flipped");
 						});
 
 						const hideButton = backFace.createEl("button", {
@@ -131,7 +142,7 @@ export default class SimpleFlashcardsPlugin extends Plugin {
 							text: "Hide",
 						});
 						hideButton.addEventListener("click", () => {
-							flashcardEl.classList.remove("is-flipped");
+							flashcardEl.removeClass("is-flipped");
 						});
 						break;
 					}
@@ -196,8 +207,7 @@ export default class SimpleFlashcardsPlugin extends Plugin {
 			const backHeight = backFace ? backFace.scrollHeight : 0;
 
 			const maxHeight = Math.max(frontHeight, backHeight);
-			//@ts-ignore
-			flashcard.style.height = maxHeight + "px";
+			flashcard.addClass(`height-${maxHeight}`);
 		});
 	}
 }

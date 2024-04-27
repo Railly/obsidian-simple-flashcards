@@ -85,3 +85,13 @@
 .flashcard-button:hover {
 	opacity: 1;
 }
+
+.flashcard.height-100 {
+	height: 100px;
+}
+.flashcard.height-200 {
+	height: 200px;
+}
+.flashcard.height-300 {
+	height: 300px;
+}
