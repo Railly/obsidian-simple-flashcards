@@ -27,10 +27,27 @@
 	border-radius: 8px;
 	padding: 20px;
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+	text-align: left;
 	color: var(--text-normal);
 	box-sizing: border-box;
+}
+
+.flashcard-face li {
+	margin-bottom: 0.25em;
+}
+
+/* New styles for continuous reading */
+.flashcard-face p + ol,
+.flashcard-face p + ul {
+	margin-top: -0.5em;
+}
+
+.flashcard-face ol + p,
+.flashcard-face ul + p {
+	margin-top: 0.5em;
 }
 
 .clickable {
@@ -51,12 +68,20 @@
 	transform: rotateY(-180deg);
 }
 
+.cloze-blank {
+	border-bottom: 1px solid var(--text-muted);
+	padding: 0 2px;
+	color: transparent;
+	font-family: monospace;
+}
+
 .cloze-reveal {
 	display: inline;
 	padding: 0 0.25em;
 	background-color: var(--color-base-35);
 	visibility: visible;
 	border-radius: 4px;
+	font-weight: bold;
 	color: var(--text-accent);
 }
 
