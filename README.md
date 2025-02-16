@@ -104,3 +104,11 @@ If you find this plugin helpful and wish to support ongoing development, conside
 <a href="https://donate.railly.dev?open-yape-dialog=true">
   <img style="margin-right: 20px;" src="https://raw.githubusercontent.com/Railly/donate/main/public/donate-with-yape.png" alt="Donate with PayPal" height="45px" />
 </a>
+
+### Features
+
+-   🗃️ Standard Q&A flashcards
+-   🎴 Cloze deletion flashcards for active recall
+-   🔁 Customizable reveal methods (hover, button click, surface click)
+-   🖋️ Inline cloze deletion with {{word}} syntax
+-   🧠 Markdown support within code blocks.
